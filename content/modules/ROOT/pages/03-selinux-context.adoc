@@ -1,0 +1,161 @@
+____
+*IMPORTANT* You will be using the RHEL Web Console tab for this
+exercise. Log into the console as user tester with a password of tester
+____
+
+== Before beginning the lab
+
+[arabic]
+. Select the *RHEL Web Console tab* at the top of the pane on the left.
+This will open a new browser tab. Accept the warning. Proceed to the
+login page.
+. Log into the RHEL Web console as user *tester* with a password of
+_tester_.
+. In the RHEL Web console, select the Terminal window element at the
+bottom of the left hand bar.
+. Become the root user by running *sudo -i* in the terminal and
+providing the password for tester.
+
+== Examining Context
+
+Let’s examine the content on a file from the tester user’s home
+directory.
+
+[source,bash]
+----
+ls -lZ ~tester/.vimrc
+----
+
+The -Z flag is present in a wide variety of common CLI tools including
+ls and ps. The flag indicates that SELinux context information should be
+displayed. In this example we can see the fields are: - user
+(unconfined_u) - role (object_r) - type (user_home_t) - level (s0).
+
+The SELinux user is not the same as the UNIX user. It exists to
+associate a system user (local defined or from a centralized identity
+store) to a set of SELinux roles. Roles make sense for processes, but
+not typically for other objects and are used to implement Role Based
+Access Control (RBAC). This allows system users to be managed at scale
+more easily using SELinux policy. On a freshly deployed system with no
+additional configuration, there is a __default__ SELinux user assigned
+to each system user. This default maps to the _unconfined_u_ SELinux
+user. The unconfined_u user is allowed to launch any application that
+standard filesystem permissions allow. If that application has a defined
+context transition, then a confined context will still be applied to the
+process. You will find that context and domain are used interchangably
+when refering to processes. There are a number of other SELinux users
+defined by default. We will launch some processes to see these policy
+rules in action.
+
+To demonstrate the difference between confined and unconfined processes,
+let’s launch an application which doesn’t have a defined domain
+transition.
+
+[source,bash]
+----
+yes >/dev/null &
+----
+
+[source,bash]
+----
+ps -Z | grep yes
+----
+
+You can see that the _yes_ process is labeled with the
+unconfined_service_t context, indicating that the process is
+unrestricted.
+
+Stop the _yes_ process by switching it to foreground and ending it using
+Crtl+C.
+
+[source,bash]
+----
+#switch to foreground and end the process with ctrl+c
+fg
+----
+
+If we launch the passwd utility, we see a different result. *Remember*
+run this in the Web Console.
+
+[source,bash]
+----
+passwd tester >/dev/null &
+----
+
+[source,bash]
+----
+ps -Z | grep passwd
+----
+
+See that the third field is _passwd_t_, indicating that the passwd
+process has been confined by the _passwd_t_ domain.
+
+Let’s stop the running process and move on:
+
+[source,bash]
+----
+kill %1
+----
+
+____
+*Moving or Copying Files:* Copied files, by default take on the context
+of the target directory. Moved files retain their original context. See
+also _restorecond_ man page from policycoreutils-restorecond
+____
+
+=== Changing and Restoring context
+
+If I had to suggest to a new administrator the one thing about SELinux
+that they should remember, it would be _restorecon_. The restorecon
+command will reset the SELinux context of an object to what is defined
+for that object in the active policy. Red Hat Enterprise Linux ships
+with a preloaded policy database that provides the default SELinux
+context information for all parts of the operating system. SELinux is
+enabled and enforcing by default, providing us with a very secure system
+out of the box. We can modify the context of objects when we have root
+privlege and if necessary restore them to the default.
+
+We can change the context of an object the _chcon_ command.
+
+To try this out, let’s purposefully set the context to an inappropriate
+value on our example SELinux AVC log file. **You can use the _Teminal
+window for the remainder of the exercise.**
+
+[source,bash]
+----
+chcon -t httpd_sys_content_t ./testaudit
+----
+
+[source,bash]
+----
+ls -Z ./testaudit
+----
+
+Oh, no! What was the context supposed to be? Whew, restorecon saves the
+day.
+
+[source,bash]
+----
+restorecon -v ./testaudit
+----
+
+[source,bash]
+----
+ls -Z ./testaudit
+----
+
+The restorecon retrieves the default context for the directory and
+reapplies it to the file. The text version of this information is stored
+in _/etc/selinux/targeted/contexts/files/file_contexts_
+
+[source,bash]
+----
+grep admin_home_t /etc/selinux/targeted/contexts/files/file_contexts
+----
+
+You can also manage context with the *semanage* command. The *semanage
+fcontext* command sets the context of a file system objects. Check out
+the man pages for more info!
+
+Now that we understand SELinux context better let’s write a simple
+policy to manage a custom application. On to the next challenge!

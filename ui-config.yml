@@ -1,0 +1,33 @@
+---
+antora:
+  name: modules
+  dir: www
+  modules:
+    - name: "01-introduction"
+      label: "Introduction"
+      solveButton: true
+    - name: "02-selinux-logging"
+      label: "Selinux Logging"
+      solveButton: true
+    - name: "03-selinux-context"
+      label: "Selinux Context"
+      solveButton: true
+    - name: "04-selinux-policy1"
+      label: "Selinux Policy1"
+      solveButton: true
+    - name: "05-selinux-policy2"
+      label: "Selinux Policy2"
+      solveButton: true
+    - name: "06-selinux-policy3"
+      label: "Selinux Policy3"
+      solveButton: true
+    - name: "07-selinux-policy4"
+      label: "Selinux Policy4"
+      solveButton: true
+    - name: "08-wrapping-up"
+      label: "Wrapping Up"
+      solveButton: true
+
+tabs:
+  - name: ">_ terminal"
+    url: /wetty

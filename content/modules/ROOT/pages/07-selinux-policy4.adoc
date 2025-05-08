@@ -1,0 +1,46 @@
+== The Last Interface
+
+We are just about done. List the remaining denials. Only 2 entries!
+
+[source,bash]
+----
+TIME=`date +%T`;export TIME; sudo systemctl restart testapp; sudo ausearch -m AVC -ts $TIME
+----
+
+It seems that we can’t get access to /etc/resolv.conf. Use your
+favourite approach on this one, audit2allow or a search.
+
+Do that now.
+
+No peaking.
+
+OK. If you take a look at - audit2allow -R - audit2allow -N - and search
+for the file You find that the interface specified by _-R_ ends up
+encapsulating the allow statements specified when using _-N_
+
+Write. Compile. Restart. Test.
+
+Your testapp.te file should look like this.
+
+Compile. Restart. Test.
+
+[source,bash]
+----
+TIME=`date +%T`;export TIME; sudo systemctl restart testapp; sleep 60; sudo ausearch -m AVC -ts $TIME
+----
+
+No AVCs!!
+
+The final test! Let’s turn on enforcement. Comment out the *permissive
+testapp_t;* line in declarations of testapp.te, recompile the policy and
+test.
+
+[source,bash]
+----
+TIME=`date +%T`;export TIME; sudo systemctl restart testapp; sleep 60; sudo ausearch -m AVC -ts $TIME
+----
+
+We have successfully created an SELinux policy to manage our custom
+application!
+
+Congratulations!

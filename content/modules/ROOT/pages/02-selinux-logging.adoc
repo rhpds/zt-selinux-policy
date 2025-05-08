@@ -1,0 +1,120 @@
+SELinux messages are logged to the system journal and in the
+*/var/log/audit/audit.log* file.
+
+Awesome. *WHERE*. Check.
+
+The *ausearch* command is used to search the audit.log file for various
+message types. Take a look at the command below. It uses the _message_
+argument to look for SELinux Policy Load events, the _interpret_
+argument to make the output more human readable, and _–just-one_ to say
+give me only one result item.
+
+[source,bash]
+----
+sudo ausearch --message MAC_POLICY_LOAD --interpret --just-one
+----
+
+____
+Elements in the output that you should focus on are highlighted in red.
+Your output may be slightly different.
+____
+
+You should see the output below.
+
+Examining the output you can see that /usr/sbin/load_policy is called to
+load the SELinuix policy. The policy was loaded by the SELinux LSM and
+that the operation was successful. A more through example of
+understanding an audit record is discussed in the
+https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/9/html/security_hardening/auditing-the-system_security-hardening#understanding-audit-log-files_auditing-the-system[RHEL
+Security Hardening Guide&#44; Chapter 12]. The
+https://access.redhat.com/articles/4409591[RHEL Audit System Reference]
+provides the definitive list of each of the Audit Event Fields and Audit
+Record Types.
+
+From an SELinux perspective, some useful record types to search for are:
+avc, user_avc, selinux_err, user_selinux_err. You can search for
+multiple at the same time by specifying a list. Since we are on a
+freshly deployed system, these will not return and matches. This is a
+good thing and will confirm that our system is operating properly in
+Enforcing mode.
+
+[source,bash]
+----
+sudo ausearch --message avc,user_avc --interpret
+----
+
+You can limit your search to a time period, like today (-ts | –start ==
+time start). Or bracket a particular window with -ts and -te (-te | –end
+== time end). This is very useful for troubleshooting issues that may
+have involved and SELinux denial.
+
+[source,bash]
+----
+sudo ausearch --message avc --interpret --start today
+----
+
+____
+NOTE: We have a fresh system, so, you won’t see anything with these
+commands yet. We will use them a lot in later exercises.
+____
+
+The key word recent means in the last 10 minutes.
+
+[source,bash]
+----
+sudo ausearch --message avc --interpret --start recent
+----
+
+The system is not returning and AVC messages. Good. Now we have covered
+the *HOW*. Check. Let’s look
+
+There is a testaudit file located in /root. It contains sample audit
+information that we can use to understand AVC messages. To see what an
+AVC audit message looks like, run the following command.
+
+[source,bash]
+----
+sudo ausearch --input /root/testaudit --message avc
+----
+
+From the output, we can see that the requested access was not
+successful. The httpd executable, pid=2427, was denied access when it
+tried to check the attributes on the peth /var/www/html/file1. The
+result also gives an indication of why the denial occurs. The source
+context was httpd_t and the target context was samba_share_t. The target
+class was a file.
+
+*WHO* and *WHAT*. Check.
+
+____
+Remember that SELinux policy rules are checked *after* DAC rules.
+SELinux policy rules are not used if DAC rules deny access first, which
+means that no SELinux denial is logged if the traditional DAC rules
+prevent the access.
+____
+
+We can get a plain language message that provides a possible reason for
+the denial using the command *audit2why*. Try this.
+
+[source,bash]
+----
+sudo ausearch --input /root/testaudit --message avc | audit2why
+----
+
+You should see something like the following.
+
+The audit2why command is telling us that there is a missing type
+enforcement rule. Hmmm…
+
+Does that mean that we should allow httpd to access samba files? *No!*
+
+This is obviously not the complete picture of the situation, but it is
+pointing use towards the problem that maybe the file’s context is not
+set properly.
+
+*WHY?* This is a good start. This also brings up the point of *WHEN!* do
+we really want to make a change to policy. I think we still need more
+information.
+
+And *Context*? What is a file or any other object’s "`context`". Let’s
+find out in the next exercise.

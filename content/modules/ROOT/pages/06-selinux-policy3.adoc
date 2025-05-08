@@ -1,0 +1,109 @@
+== Checking for Network AVC denials.
+
+Let’s find the next AVC that happened since our most recent restart. If
+you need to, restart the service again to get a good starting point.
+
+[source,bash]
+----
+TIME=`date +%T`;export TIME; sudo systemctl restart testapp; sudo ausearch --message AVC --just-one --start $TIME;
+----
+
+It seems that our application is trying to access ssl certificates and
+is being denied access them. Let’s take a look at the interfaces. Again
+we will use find, grep, less and a search to find the interface.
+
+[source,bash]
+----
+find /usr/share/selinux/devel/include -type f -name "*.if" -exec grep -iH 'ssl certificate' {} \; | grep -i read
+----
+
+This turns up several files. We are looking at a home directory, so that
+rules one out. We don’t need to look at _all_ SSL certificates. Hmmm..
+
+So look let’s look in the miscfiles files for the interface that reads
+generic SSL certs. When we do, using _less_ and a search, we see the
+interface definition below.
+
+[source,bash]
+----
+less /usr/share/selinux/devel/include/system/miscfiles.if
+----
+
+Now search for "`Read generic`" within the file by typing:
+
+[source,bash]
+----
+/Read generic
+----
+
+The interface we need is *miscfiles_read_generic_certs*. We can see that
+this macro has an allow statement and additional calls that allow the
+process to access the appropriate files. Let’s add it to our testapp.te
+file. As in the previous examples, pass testapp_t as the parameter in
+the interface call.
+
+Your testapp.te file should look like this.
+
+____
+ASIDE: miscfiles_read_generic_certs() replaces miscfiles_read_certs().
+When you run audit2allow -R it recommends miscfiles_read_certs(). When
+you compile the template, the sepolicy compiler throws a warning letting
+you know that you should use miscfiles_read_generic_certs().
+____
+
+Run testapp.sh, get a time, search the audit.log for a relevant search
+term like _openssl_ or _pki_. Make sure that there are no more coming
+up.
+
+[source,bash]
+----
+TIME=`date +%T`;export TIME; sudo systemctl restart testapp; ausearch --message AVC --start $TIME | grep openssl | wc -l
+----
+
+[source,bash]
+----
+TIME=`date +%T`;export TIME; sudo systemctl restart testapp; ausearch --message AVC --start $TIME | grep pki | wc -l
+----
+
+Another one down. Next!
+
+If we take a look at the output from the beginning of our last run, we
+see lots of AVCs with getattr, getopt, create, connect, etc.. on tcp/udp
+sockets and ports. Since our testapp is trying to pull data from a
+website, that seems logical and critical for the application to
+function. Let’s dig in a little. If you were to examine testapp.c you
+would discover that we are pulling from the https version of the site.
+
+So let’s see if there is an AVC for port 443 and what audit2allow
+suggests.
+
+[source,bash]
+----
+TIME=`date +%T`;export TIME; sudo systemctl restart testapp; sleep 15; ausearch --message AVC --start $TIME | grep 'dest=443' | audit2allow -R
+----
+
+OK, we can add that to our policy file. What about the tcp / udp sockets
+
+[source,bash]
+----
+sudo ausearch -m AVC -ts $TIME | egrep 'tcp|udp' | audit2allow -R
+----
+
+The search brings up the same recommendation, plus some specific allow
+statements. Let’s add the lines to our testapp.te file. When you are
+done editing. The file should look something like the following.
+
+OK. Save your file and run the testapp.sh script again. *Restart* the
+testapp service. And check your results.
+
+[source,bash]
+----
+TIME=`date +%T`;export TIME; sudo systemctl restart testapp; sleep 15; sudo ausearch -m AVC -ts $TIME | egrep 'tcp|udp' | wc -l
+----
+
+[source,bash]
+----
+TIME=`date +%T`;export TIME; sudo systemctl restart testapp; sleep 15; sudo ausearch -m AVC -ts $TIME | grep 'dest=443' | wc -l
+----
+
+OK. Let’s go to the last challenge and finish up the policy.

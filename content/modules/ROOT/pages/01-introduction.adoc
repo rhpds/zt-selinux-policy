@@ -1,0 +1,134 @@
+== Some SELinux Basics
+
+____
+All current Red Hat Enterprise Linux operating systems are shipped to
+install with SELinux enabled and in enforcing mode.
+____
+
+____
+<< *The line here on the left is a sliding divider. Use it to give
+yourself more screen to read or see the instructions.*
+____
+
+At runtime, when enabled, SELinux can hold one of two states for the
+system. *Enforcing mode*, where SELinux security policy is loaded and
+enforced across the system. And, *Permissive mode*, where SELinux policy
+is loaded, checked, and logged, but _not enforced_.
+
+Let’s verify that SELinux is on and in enforcing mode. The *getenforce*
+command is used to list the current mode of SELinux.
+
+[source,bash]
+----
+sudo getenforce
+----
+
+You should see the output below.
+
+OK, let’s change the SELinux mode to permissive. The *setenforce*
+command governs the overall state of SELinux on the system at runtime.
+
+[source,bash]
+----
+sudo setenforce permissive
+----
+
+Use getenforce to list the current mode. Just use up arrow to find and
+replay the getenforce command. Save yourself a copy and paste. :-) You
+should now see that the output has changed.
+
+Let’s change it back to Enforcing mode. I am using crazy capitalization
+here on purpose.
+
+[source,bash]
+----
+sudo setenforce EnForCINg
+----
+
+You can provide the word *enforcing* or *permissive* in any combination
+of case as long as you spell the mode correctly. You can also provide a
+numeric 1 (enforcing) or 0 (permissive) to change the state. Running
+getenforce should now show that the mode has been set to Enforcing
+again.
+
+To make permanent changes to the system so that the states above survive
+a reboot, we edit the */etc/selinux/config* file. There are two control
+statements. The statements start with *SELINUX=* and *SELINUXTYPE=*.
+Each of these statements has three possible values.
+
+SELINUX= can take one of these three values: - enforcing - SELinux
+security policy is enforced. (Default) - permissive - SELinux prints
+warnings instead of enforcing. - disabled - No SELinux policy is loaded.
+
+____
+*NOTE:* On RHEL version 8.x and lower, the value _disabled_ actually
+disables SELinux in the kernel. In RHEL 9 and later, if the value
+_disabled_ is specified, SELinux is still turned on in the kernel,
+however, no policy is loaded at boot time (no rules, no denials). On Red
+Hat Enterprise Linux 9 and later, to ensure SELinux is disabled in the
+kernel, add selinux=0 to the kernel command line.
+____
+
+SELINUXTYPE= can take one of these three values: - targeted - Targeted
+processes are protected. (Default) - minimum - Modification of targeted
+policy. Only selected processes are protected. - mls - Multi Level
+Security protection.
+
+Only one policy can be active at any given time. You must reboot and
+possibly relabel the system if you change the policy type.
+
+== Managing individual applications
+
+It is useful sometimes to manage an individual configuration while we
+are testing a policy or if an application with a policy has changed and
+we need to track its new behaviour. We can manage the scope of
+enforcement on an individual process using the *semanage* command. We
+refer to a scope of enforcement in SELinux as a *domain* or *context*.
+For example _httpd_t_ is the domain that defines web server access.
+Let’s set the httpd_t domain to permissive mode using the semanage
+command.
+
+[source,bash]
+----
+sudo semanage permissive --add httpd_t
+----
+
+This command adds the httpd_t domain to the list assigned SELinux
+Permissive mode. We can check that the domains was added to the
+Permissive Types using the semanage command with _–list_. Later, we will
+see how to add this to a policy.
+
+[source,bash]
+----
+sudo semanage permissive --list
+----
+
+You will see it listed like this.
+
+Changing it back is easy using semanage again.
+
+[source,bash]
+----
+sudo semanage permissive --delete httpd_t
+----
+
+In our case, the output tells us we have removed the last module with
+permissive mode.
+
+____
+*IMPORTANT:* Permissive mode is very important for SELinux practioners.
+Permissive mode may yield a different set of denials than enforcing
+mode. Enforcing mode prevents an operation from proceeding past the
+first denial. Permissive mode allows it to continue and potentially hit
+more denials. Some application code will fall back to a less privileged
+mode of operation if denied access. Permissive mode allows an
+administrator to find out all the SELinux rules the application is
+hitting under the current conditions and enables the administrator to
+define an appropriate policy. This is very useful when implementing
+SELinux in an environment where it hasn’t been enforced in the past.
+____
+
+These are some of the basics of managing SELinux state.
+
+In the next section we will see what happens when SELinux policy logs a
+violation and how we can identify it.

@@ -1,0 +1,115 @@
+== Generate a default SELinx policy
+
+We will normally use source control, like git, to manage our policy
+content and follow good DevSecOps practice as we work through creating
+the policy. In our workshop we will not be using source control. Let’s
+just isolate our code in a directory.
+
+[source,bash]
+----
+mkdir /root/selinuxlab/policy
+cd /root/selinuxlab/policy
+----
+
+Now we will create a template policy using the *sepolicy generate*
+command. The _–init_ switch says to make a policy template for a process
+started as a service. We can generate other template types. See the
+sepolicy man page.
+
+[source,bash]
+----
+sepolicy generate --init /usr/local/sbin/testapp
+----
+
+What we should see is that the command has created a number of files in
+the policy directory. The contents of these 5 files help us define the
+policy that will be applied to our app.
+
+*SELinux Policy Source Components*
+
+[arabic]
+. *testapp.te* is the base policy for the application. It sets the rules
+for the _testapp_t_ domain.
+. *testapp.if* is the interface file. Interfaces are like public
+functions, in that they provide ways for other SELinux modules to
+interact with the one that you are writing. This file contains the
+definition and mapping of the domain transition and execution endpoints
+for testapp policy.
+. *testapp.fc is* the file contexts file. It contains the labeling
+information for all filesystem objects that the policy references,
+including the executable.
+. *testapp_selinux.spec* the selinux policy is packaged as an rpm for
+distribution for you automatically. The spec file defines the rpm build.
+. *testapp.sh* is a Red Hat provided script that compiles and loads the
+SELinux policy module.
+
+*Compile the default policy*
+
+Run the testapp.sh script to compile the SELinux base policy and cause
+it to load into the security server. These scripts need to run as root.
+
+[source,bash]
+----
+sudo /root/selinuxlab/policy/testapp.sh
+----
+
+____
+You may see a bunch of lines that state *Error: duplicate definition of
+…*. These can safely be ignored. You should see the process start with
+something like the following.
+____
+
+The process builds the source and binary rpms, installs rpm and writes
+the resulting files to the policy directory. The rpm files allow you to
+easily redistribute the SELinux policy with your application
+installation and automation.
+
+== See the policy in action
+
+Let’s reload the application to see the policy in action.
+
+[source,bash]
+----
+sudo systemctl restart testapp
+ps -efZ | grep sbin | grep testapp
+----
+
+We now see the application running under the testapp_t context
+(sometimes called domain when referring to a process).
+
+*How does the application get the context?*
+
+The policy defines the labels and the rules for the domain/context the
+application runs in - the target context - in our case _testapp_t_. The
+application is started by the systemd process which runs under context
+_init_t_ and has a very high level of privilege. We can’t have the
+application inherit the init_t context, so, the policy also defines the
+*transition* between the context of the starting process and the target
+context for the application. The policy basically states that:
+
+when a process labeled _init_t_ starts a binary labeled _testapp_exec_t_
+the system transitions the newly created process to a context of
+_testapp_t_
+
+Labels, transitions, etc.. are defined in the policy database. You can
+view them using the *sesearch* utility. Check out the man page for all
+the switches and how they work, but for now try this.
+
+[source,bash]
+----
+sesearch --type_trans --source init_t --target testapp_exec_t
+----
+
+You should see that we have a type transition that gets our testapp to
+the proper context.
+
+*Current state of the policy*
+
+At this point, we have a generic policy for the testapp application,
+which is set for *permissive* mode. Thus, the application can run, and
+SELinux will generate alerts when existing system policy is violated,
+but will take no action.
+
+Let’s track down any AVCs that get generated and adjust our policy to
+allow testapp to run cleanly in Enforcing mode. On to the next
+challenge!
