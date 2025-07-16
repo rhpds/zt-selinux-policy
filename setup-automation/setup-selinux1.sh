@@ -1,10 +1,5 @@
 #!/bin/bash
 
-while [ ! -f /opt/instruqt/bootstrap/host-bootstrap-completed ]
-do
-    echo "Waiting for Instruqt to finish booting the VM"
-    sleep 1
-done
 
 # This base code allows us to access content
 # TODO: Matthew will embed the activation key in a new image
