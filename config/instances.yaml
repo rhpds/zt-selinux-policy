@@ -12,5 +12,5 @@ virtualmachines:
         value: "bastions"
     networks:
       - default
-#    packages:
-#      - policycoreutils
+    packages:
+      - policycoreutils
