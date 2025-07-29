@@ -1,18 +1,5 @@
 #!/bin/bash
 
-while [ ! -f /opt/instruqt/bootstrap/host-bootstrap-completed ]
-do
-    echo "Waiting for Instruqt to finish booting the VM"
-    sleep 1
-done
-
-# This base code allows us to access content
-# TODO: Matthew will embed the activation key in a new image
-yum remove -y google-rhui-client-rhel8.noarch
-yum clean all
-subscription-manager config --rhsm.manage_repos=1
-subscription-manager register --activationkey=${ACTIVATION_KEY} --org=12451665 --force
-
 # BEGIN: Track setup code
 # get our sample code and testaudit
 
