@@ -18,6 +18,8 @@ is loaded, checked, and logged, but _not enforced_.
 Let’s verify that SELinux is on and in enforcing mode. The *getenforce*
 command is used to list the current mode of SELinux.
 
+IMPORTANT: You will use the top terminal window until instucted.
+
 [source,bash]
 ----
 sudo getenforce
