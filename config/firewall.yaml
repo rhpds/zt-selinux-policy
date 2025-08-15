@@ -4,9 +4,7 @@ egress:
   - ports:
       - protocol: TCP
         port: 443
-
-# The following lines are suggested based on Instruqt's allow_external_ingress fields:
-# selinux1:
-#   - http
-#   - https
-#   - high-ports
+#ingress:
+#  - ports:
+#      - protocol: TCP
+#        port: 9090
