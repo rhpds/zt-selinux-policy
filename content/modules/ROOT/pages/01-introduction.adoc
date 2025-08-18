@@ -6,9 +6,6 @@ install with SELinux enabled and in enforcing mode.
 ____
 
 ____
-<< *The line here on the left is a sliding divider. Use it to give
-yourself more screen to read or see the instructions.*
-____
 
 At runtime, when enabled, SELinux can hold one of two states for the
 system. *Enforcing mode*, where SELinux security policy is loaded and
