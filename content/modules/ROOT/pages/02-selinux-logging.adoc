@@ -20,11 +20,6 @@ give me only one result item.
 sudo ausearch --message MAC_POLICY_LOAD --interpret --just-one
 ----
 
-____
-Elements in the output that you should focus on are highlighted in red.
-Your output may be slightly different.
-____
-
 You should see the output below.
 
 Examining the output you can see that /usr/sbin/load_policy is called to
@@ -93,7 +88,7 @@ sudo ausearch --input /root/testaudit --message avc
 ----
 
 From the output, we can see that the requested access was not
-successful. The httpd executable, pid=2427, was denied access when it
+successful. The httpd executable, pid=9430, was denied access when it
 tried to check the attributes on the peth /var/www/html/file1. The
 result also gives an indication of why the denial occurs. The source
 context was httpd_t and the target context was samba_share_t. The target
