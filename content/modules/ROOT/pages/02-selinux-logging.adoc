@@ -89,7 +89,7 @@ sudo ausearch --input /root/testaudit --message avc
 
 From the output, we can see that the requested access was not
 successful. The httpd executable, pid=9430, was denied access when it
-tried to check the attributes on the peth /var/www/html/file1. The
+tried to check the attributes on the path /var/www/html/file1. The
 result also gives an indication of why the denial occurs. The source
 context was httpd_t and the target context was samba_share_t. The target
 class was a file.
