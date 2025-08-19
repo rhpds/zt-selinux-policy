@@ -31,7 +31,5 @@ antora:
 tabs:
   - name: ">_ terminal"
     url: /wetty
-    secondary_name: "Second terminal"
-    secondary_url: /wetty
   - name: cockpit
     url: https://cockpit-${guid}.${domain}/
