@@ -120,6 +120,13 @@ Changing it back is easy using semanage again.
 sudo semanage permissive --delete httpd_t
 ----
 
+And Lets see what has changed on the list.
+
+[source,bash]
+----
+sudo semanage permissive --list
+----
+
 In our case, the output tells us we have removed the last module with
 permissive mode.
 
