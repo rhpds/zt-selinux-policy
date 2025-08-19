@@ -1,21 +1,23 @@
-== Some SELinux Basics
+# Some SELinux Basics
 
-____
-All current Red Hat Enterprise Linux operating systems are shipped to
-install with SELinux enabled and in enforcing mode.
-____
+All current Red Hat Enterprise Linux operating systems are shipped to install with SELinux enabled and in enforcing mode.
 
-____
 
 At runtime, when enabled, SELinux can hold one of two states for the
-system. *Enforcing mode*, where SELinux security policy is loaded and
-enforced across the system. And, *Permissive mode*, where SELinux policy
+system. 
+
+* *Enforcing mode*, where SELinux security policy is loaded and
+enforced across the system.
+
+* *Permissive mode*, where SELinux policy
 is loaded, checked, and logged, but _not enforced_.
+
+## Find the staus of SELinux
 
 Let’s verify that SELinux is on and in enforcing mode. The *getenforce*
 command is used to list the current mode of SELinux.
 
-IMPORTANT: You will use the top terminal window until instucted.
+IMPORTANT: You will use the tab named ">_ terminal" until instucted.
 
 [source,bash]
 ----
@@ -23,6 +25,8 @@ sudo getenforce
 ----
 
 You should see the output below.
+
+## Set SELinux to Permissive
 
 OK, let’s change the SELinux mode to permissive. The *setenforce*
 command governs the overall state of SELinux on the system at runtime.
@@ -35,6 +39,8 @@ sudo setenforce permissive
 Use getenforce to list the current mode. Just use up arrow to find and
 replay the getenforce command. Save yourself a copy and paste. :-) You
 should now see that the output has changed.
+
+## Set SELinux to Enforcing
 
 Let’s change it back to Enforcing mode. I am using crazy capitalization
 here on purpose.
@@ -68,21 +74,24 @@ Hat Enterprise Linux 9 and later, to ensure SELinux is disabled in the
 kernel, add selinux=0 to the kernel command line.
 ____
 
-SELINUXTYPE= can take one of these three values: - targeted - Targeted
-processes are protected. (Default) - minimum - Modification of targeted
-policy. Only selected processes are protected. - mls - Multi Level
-Security protection.
+SELINUXTYPE= can take one of these three values:
+
+* targeted - Targeted processes are protected. 
+* (Default) - minimum - Modification of targeted policy. Only selected processes are protected.
+* mls - Multi Level Security protection. 
 
 Only one policy can be active at any given time. You must reboot and
 possibly relabel the system if you change the policy type.
 
-== Managing individual applications
+## Managing individual applications
 
 It is useful sometimes to manage an individual configuration while we
 are testing a policy or if an application with a policy has changed and
-we need to track its new behaviour. We can manage the scope of
-enforcement on an individual process using the *semanage* command. We
-refer to a scope of enforcement in SELinux as a *domain* or *context*.
+we need to track its new behaviour. 
+
+We can manage the scope of enforcement on an individual process using the *semanage* command. 
+
+We refer to a scope of enforcement in SELinux as a *domain* or *context*.
 For example _httpd_t_ is the domain that defines web server access.
 Let’s set the httpd_t domain to permissive mode using the semanage
 command.
