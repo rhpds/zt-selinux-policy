@@ -1,10 +1,16 @@
+# SELinux Logging
+
+## *WHERE*
+
 SELinux messages are logged to the system journal and in the
 */var/log/audit/audit.log* file.
 
-Awesome. *WHERE*. Check.
+## *HOW*
 
 The *ausearch* command is used to search the audit.log file for various
-message types. Take a look at the command below. It uses the _message_
+message types. Take a look at the command below. 
+
+It uses the _message_
 argument to look for SELinux Policy Load events, the _interpret_
 argument to make the output more human readable, and _–just-one_ to say
 give me only one result item.
@@ -23,7 +29,10 @@ You should see the output below.
 
 Examining the output you can see that /usr/sbin/load_policy is called to
 load the SELinuix policy. The policy was loaded by the SELinux LSM and
-that the operation was successful. A more through example of
+that the operation was successful. 
+
+
+A more through example of
 understanding an audit record is discussed in the
 https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/9/html/security_hardening/auditing-the-system_security-hardening#understanding-audit-log-files_auditing-the-system[RHEL
 Security Hardening Guide&#44; Chapter 12]. The
@@ -32,8 +41,13 @@ provides the definitive list of each of the Audit Event Fields and Audit
 Record Types.
 
 From an SELinux perspective, some useful record types to search for are:
-avc, user_avc, selinux_err, user_selinux_err. You can search for
-multiple at the same time by specifying a list. Since we are on a
+
+* avc
+* user_avc
+* selinux_err
+* user_selinux_err 
+
+You can search for multiple at the same time by specifying a list. Since we are on a
 freshly deployed system, these will not return and matches. This is a
 good thing and will confirm that our system is operating properly in
 Enforcing mode.
@@ -65,8 +79,9 @@ The key word recent means in the last 10 minutes.
 sudo ausearch --message avc --interpret --start recent
 ----
 
-The system is not returning and AVC messages. Good. Now we have covered
-the *HOW*. Check. Let’s look
+The system is not returning and AVC messages. 
+
+## *Who* and *What*
 
 There is a testaudit file located in /root. It contains sample audit
 information that we can use to understand AVC messages. To see what an
@@ -83,8 +98,6 @@ tried to check the attributes on the peth /var/www/html/file1. The
 result also gives an indication of why the denial occurs. The source
 context was httpd_t and the target context was samba_share_t. The target
 class was a file.
-
-*WHO* and *WHAT*. Check.
 
 ____
 Remember that SELinux policy rules are checked *after* DAC rules.
