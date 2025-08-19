@@ -12,21 +12,19 @@ virtualmachines:
     networks:
       - default
     packages:
-#      - cockpit
-#      - sssd-proxy
-#      - pcp
-#      - python3-pcp
-#    services:
-#      - name: cockpit
-#        ports:
-#          - port: 9090
-#            protocol: TCP
-#            targetPort: 9090
-#            name: cockpit
-#    routes:
-#      - name: cockpit
-#        host: cockpit
-#        service: cockpit
-#        targetPort: 9090
-#        tls: true
-#        tls_termination: Edge
+      - cockpit
+      - sssd-proxy
+    services:
+      - name: cockpit
+        ports:
+          - port: 9090
+            protocol: TCP
+            targetPort: 9090
+            name: cockpit
+    routes:
+      - name: cockpit
+        host: cockpit
+        service: cockpit
+        targetPort: 9090
+        tls: true
+        tls_termination: Edge
